@@ -1,0 +1,59 @@
+﻿services:
+    gateway:
+        build:
+            context: gateway
+            additional_contexts:
+                orm: orm
+        ports:
+            - "5050:5050"
+        depends_on:
+            - trend-predictor
+
+    finnhub-stats-fetch:
+        build:
+            context: finnhub-stats-fetch
+            additional_contexts:
+                orm: orm
+        environment:
+            FINNHUB_API_KEY: /run/secrets/finnhub_api_key
+            MYSQL_PASSWORD_FILE: /run/secrets/mysql_user_password
+        secrets:
+            - finnhub_api_key
+            - mysql_user_password
+        depends_on:
+            - database
+
+    trend-predictor:
+        build:
+            context: trend-predictor
+            additional_contexts:
+                orm: orm
+        environment:
+            MYSQL_PASSWORD_FILE: /run/secrets/mysql_user_password
+        secrets:
+            - mysql_user_password
+        depends_on:
+            - database
+
+    database:
+        image: mysql
+        environment:
+                MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+                MYSQL_DATABASE: trading
+                MYSQL_USER: dmlab
+                MYSQL_PASSWORD_FILE: /run/secrets/mysql_user_password
+        volumes:
+            - db_data:/var/lib/mysql
+        secrets:
+            - mysql_root_password
+            - mysql_user_password
+volumes:
+    db_data:
+
+secrets:
+    finnhub_api_key:
+        file: finnhub_api_key.txt
+    mysql_root_password:
+        file: mysql_root_password.txt
+    mysql_user_password:
+        file: mysql_user_password.txt

@@ -1,0 +1,5 @@
+﻿Flask
+peewee
+pymysql
+cryptography
+waitress
